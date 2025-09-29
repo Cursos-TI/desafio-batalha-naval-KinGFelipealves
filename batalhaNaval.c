@@ -2,21 +2,19 @@
 
 #define TAM_TABULEIRO 10
 #define TAM_NAVIO 3
+#define NAVIO 3 // Valor que representa um navio no tabuleiro
 
+// Função para imprimir o tabuleiro formatado
 void imprimirTabuleiro(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO]) {
     printf("====> Tabuleiro Batalha Naval <====\n\n");
-    printf("   "); // Espaço para alinhar os números das linhas
-    
+    printf("   ");
     for (char letra = 'A'; letra < 'A' + TAM_TABULEIRO; letra++) {
         printf(" %c", letra);
     }
     printf("\n");
 
     for (int i = 0; i < TAM_TABULEIRO; i++) {
-        // Imprime número da linha (1 a 10), com alinhamento
         printf("%2d ", i + 1);
-
-        // Imprime o conteúdo da linha
         for (int j = 0; j < TAM_TABULEIRO; j++) {
             printf(" %d", tabuleiro[i][j]);
         }
@@ -24,48 +22,101 @@ void imprimirTabuleiro(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO]) {
     }
 }
 
+// Função para verificar se uma posição está livre
+int estaLivre(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int linha, int coluna) {
+    return tabuleiro[linha][coluna] == 0;
+}
+
+// Função para posicionar um navio horizontal ou vertical
+int posicionarNavioHV(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int linha, int coluna, char direcao) {
+    if (direcao == 'H') {
+        // Validação de limite horizontal
+        if (coluna + TAM_NAVIO > TAM_TABULEIRO) return 0;
+
+        // Verifica sobreposição
+        for (int i = 0; i < TAM_NAVIO; i++)
+            if (!estaLivre(tabuleiro, linha, coluna + i)) return 0;
+
+        // Posiciona o navio
+        for (int i = 0; i < TAM_NAVIO; i++)
+            tabuleiro[linha][coluna + i] = NAVIO;
+
+    } else if (direcao == 'V') {
+        // Validação de limite vertical
+        if (linha + TAM_NAVIO > TAM_TABULEIRO) return 0;
+
+        // Verifica sobreposição
+        for (int i = 0; i < TAM_NAVIO; i++)
+            if (!estaLivre(tabuleiro, linha + i, coluna)) return 0;
+
+        // Posiciona o navio
+        for (int i = 0; i < TAM_NAVIO; i++)
+            tabuleiro[linha + i][coluna] = NAVIO;
+    } else {
+        return 0; // Direção inválida
+    }
+
+    return 1; // Sucesso
+}
+
+// Função para posicionar navio diagonal
+int posicionarNavioDiagonal(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int linha, int coluna, char direcao) {
+    if (direcao == 'D') {
+        // Diagonal ↘ (linha++, coluna++)
+        if (linha + TAM_NAVIO > TAM_TABULEIRO || coluna + TAM_NAVIO > TAM_TABULEIRO)
+            return 0;
+
+        for (int i = 0; i < TAM_NAVIO; i++)
+            if (!estaLivre(tabuleiro, linha + i, coluna + i)) return 0;
+
+        for (int i = 0; i < TAM_NAVIO; i++)
+            tabuleiro[linha + i][coluna + i] = NAVIO;
+
+    } else if (direcao == 'E') {
+        // Diagonal ↙ (linha++, coluna--)
+        if (linha + TAM_NAVIO > TAM_TABULEIRO || coluna - (TAM_NAVIO - 1) < 0)
+            return 0;
+
+        for (int i = 0; i < TAM_NAVIO; i++)
+            if (!estaLivre(tabuleiro, linha + i, coluna - i)) return 0;
+
+        for (int i = 0; i < TAM_NAVIO; i++)
+            tabuleiro[linha + i][coluna - i] = NAVIO;
+
+    } else {
+        return 0; // Direção inválida
+    }
+
+    return 1; // Sucesso
+}
+
 int main() {
-    
+    // 1. Inicializa tabuleiro com água (0)
     int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO] = {0};
-    int linha_horizontal = 2;  
-    int coluna_horizontal = 3; 
 
-    int linha_vertical = 5;    
-    int coluna_vertical = 7; 
-
-    // 3. Valida posição e sobreposição do navio horizontal
-    if (coluna_horizontal + TAM_NAVIO > TAM_TABULEIRO) {
-        
+    // 2. Posiciona dois navios horizontais ou verticais
+    if (!posicionarNavioHV(tabuleiro, 2, 1, 'H')) {
+        printf("Erro ao posicionar navio horizontal.\n");
         return 1;
     }
 
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        if (tabuleiro[linha_horizontal][coluna_horizontal + i] != 0) 
+    if (!posicionarNavioHV(tabuleiro, 5, 5, 'V')) {
+        printf("Erro ao posicionar navio vertical.\n");
         return 1;
     }
 
-    // Posiciona navio horizontal
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        tabuleiro[linha_horizontal][coluna_horizontal + i] = 3;
+    // 3. Posiciona dois navios diagonais
+    if (!posicionarNavioDiagonal(tabuleiro, 6, 0, 'D')) {
+        printf("Erro ao posicionar navio diagonal ↘.\n");
+        return 1;
     }
 
-    // 4. Valida posição e sobreposição do navio vertical
-    if (linha_vertical + TAM_NAVIO > TAM_TABULEIRO) {
-      
+    if (!posicionarNavioDiagonal(tabuleiro, 0, 9, 'E')) {
+        printf("Erro ao posicionar navio diagonal ↙.\n");
+        return 1;
     }
 
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        if (tabuleiro[linha_vertical + i][coluna_vertical] != 0) {
-            return 1;
-        }
-    }
-
-    // Posiciona navio vertical
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        tabuleiro[linha_vertical + i][coluna_vertical] = 3;
-    }
-
-    // 5. Exibe o tabuleiro
+    // 4. Exibe o tabuleiro final
     imprimirTabuleiro(tabuleiro);
 
     return 0;
